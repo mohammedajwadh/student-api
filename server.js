@@ -1,19 +1,13 @@
 const express = require("express");
 const fs = require("fs");
 const path = require("path");
-const cors = require("cors");
-const { v4: uuidv4 } = require("uuid");
 
 const app = express();
 const PORT = process.env.PORT || 3000;
 const DATA_DIR = path.join(__dirname, "data");
 const DATA_FILE = path.join(DATA_DIR, "students.json");
 
-// create data folder and file if not present
-if (!fs.existsSync(DATA_DIR)) fs.mkdirSync(DATA_DIR);
-if (!fs.existsSync(DATA_FILE)) fs.writeFileSync(DATA_FILE, "[]");
 
-app.use(cors());
 app.use(express.json());
 
 // Read students from file
@@ -39,8 +33,11 @@ app.post("/api/students", (req, res) => {
     return res.status(400).json({ error: "age must be a number > 0" });
   }
 
+  const students = readStudents();
+  // Generate a simple numeric id
+  const newId = students.length > 0 ? students[students.length - 1].id + 1 : 1;
   const newStudent = {
-    id: uuidv4(),
+    id: newId,
     name,
     age,
     course,
@@ -48,7 +45,6 @@ app.post("/api/students", (req, res) => {
     status: status || "active"
   };
 
-  const students = readStudents();
   students.push(newStudent);
   writeStudents(students);
 
